@@ -17,7 +17,7 @@ export const NotesItem = (props) => {
               <i className="fa-solid fa-pen-to-square mx-3" title="Edit Note" id="editIcon" onClick={() => { updateNote(note)}}></i>
             </div>
           </div>
-          <h6 className={`card-subtitle my-1 mb-2 d-inline-block border border-2 rounded-pill p-1 text-${props.mode === 'light' ? 'muted' : 'white'}`}>
+          <h6 className={`card-subtitle my-1 mb-2 d-inline-block border border-2 rounded-pill p-2 text-${props.mode === 'light' ? 'muted' : 'white'}`}>
             {note.tag}</h6>
           <p className="card-text">{note.description}</p>
         </div>
