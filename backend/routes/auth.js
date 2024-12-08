@@ -4,14 +4,23 @@ const router = express.Router();
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
 var jwt = require("jsonwebtoken");
+var RateLimit = require("express-rate-limit");
 require("dotenv").config({ path: ".env.local" });
 const secretKey = process.env.SECRET_KEY;
 var fetchuser = require("../middleware/fetchuser");
+
+// Set up rate limiter: maximum of 100 requests per 15 minutes
+const limiter = RateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // max 100 requests per windowMs
+});
+
 
 //? @route Create  a user using: POST "/api/auth/createuser". Doesn't require auth
 
 router.post(
     "/createuser",
+    limiter,
     [
         //? Validating the data entered by the user
         body("name", "Enter a valid name").isLength({ min: 3 }),
@@ -28,7 +37,7 @@ router.post(
         try {
 
             //? Checking whether the user with this email exists already
-            let user = await User.findOne({ email: req.body.email });
+            let user = await User.findOne({ email: { $eq: req.body.email } });
             if (user) {
                 return res
                     .status(400)
@@ -64,6 +73,7 @@ router.post(
 
 router.post(
     "/login",
+    limiter,
     [
         //? Validating the data entered by the user
         body("email", "Enter a valid email").isEmail(),
@@ -78,8 +88,8 @@ router.post(
         }
         const { email, password } = req.body;
         try {
-            //? Checking whether the user with this email exists already
-            let user = await User.findOne({ email });
+            //? Checking whether the user with this email exists already.The $eq operator is used in MongoDB queries to match documents where the value of a field equals the specified value.This prevents NoSQL injection
+            let user = await User.findOne({ email: { $eq: email } });
             if (!user) {
                 return res.status(400).json({
                     success,
@@ -117,7 +127,7 @@ router.post(
 
 //? @route Get loggedin user details using: POST "/api/auth/getuser". Login required
 
-router.post("/getuser", fetchuser, async (req, res) => {
+router.post("/getuser", limiter, fetchuser, async (req, res) => {
     try {
         const userId = req.user.id;
         const user = await User.findById(userId).select("-password");

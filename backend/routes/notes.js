@@ -3,6 +3,16 @@ const router = express.Router();
 const fetchuser = require("../middleware/fetchuser");
 const Notes = require("../models/Notes");
 const { body, validationResult } = require("express-validator");
+const rateLimit = require("express-rate-limit");
+
+// Set up rate limiter: maximum of 100 requests per 15 minutes
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+});
+
+// Apply rate limiter to all requests
+router.use(limiter);
 
 //? @route   GET /notes/fetchnotes
 router.get("/fetchnotes", fetchuser, async (req, res) => {
